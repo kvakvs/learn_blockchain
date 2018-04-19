@@ -52,10 +52,10 @@
 open() ->
     {ok, _} = dets:open_file(?DETS_HEADERS,
                              [{file, "headers.dets"},
-                              {auto_save, 500}]),
+                              {auto_save, 250}]),
     {ok, _} = dets:open_file(?DETS_BLOCKS,
                              [{file, "blocks.dets"},
-                              {auto_save, 500}]),
+                              {auto_save, 250}]),
     case get_last_blockheader() of
         undefined ->
             %% No blocks yet, create a first genesis block with 0 hash
@@ -100,15 +100,23 @@ make_genesis() ->
 add(Entries) ->
     {ok, {N, #block_header{hash = PrevHash}}} = get_last_blockheader(),
     Block = #block{entries = lists:sort(Entries)},
-    BlockHash = crypto:hash(sha, term_to_binary(Block)),
-    Header = #block_header{
+    Header0 = #block_header{
         miner       = ?SELF_ADDRESS,
-        hash        = BlockHash,
+        hash        = <<>>,
         parent_hash = PrevHash
     },
+    BlockHash = get_block_hash(Block, Header0),
+    Header = Header0#block_header{hash = BlockHash},
+
     dets:insert(?DETS_BLOCKS, {BlockHash, Block}),
     dets:insert(?DETS_HEADERS, {N + 1, Header}),
     {N + 1, Header}.
+
+%% @private
+%% @doc Get hash of a block + block header with empty hash (will be set after
+%% calculating this hash)
+get_block_hash(Block, BlockHeader) ->
+    crypto:hash(sha, term_to_binary({Block, BlockHeader})).
 
 
 %% @doc For each block header from 0 to (last), read the entries and accumulate
