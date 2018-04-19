@@ -1,0 +1,5 @@
+*.iml
+_build/*
+.idea/*
+*.dets
+rebar.lock

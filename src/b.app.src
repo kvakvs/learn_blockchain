@@ -1,0 +1,9 @@
+{application, b,
+ [{description, "Simple Blockchain"},
+  {vsn, "0.0.1"},
+  {modules, [b, b_app]},
+  {registered, []},
+  {applications, [kernel, stdlib, sasl]},
+  {mod, {b, []}}
+ ]
+}.
